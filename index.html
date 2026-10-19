@@ -1,0 +1,144 @@
+
+<?php
+$modal = "";
+$jual = "";
+$jumlah = "";
+$hasil = false;
+$error = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $modal = $_POST["modal"] ?? "";
+    $jual = $_POST["jual"] ?? "";
+    $jumlah = $_POST["jumlah"] ?? "";
+
+    if (
+        $modal === "" || $jual === "" || $jumlah === "" ||
+        !is_numeric($modal) || !is_numeric($jual) ||
+        !ctype_digit($jumlah) ||
+        (float)$modal <= 0 || (float)$jual < 0 ||
+        (int)$jumlah <= 0
+    ) {
+        $error = "Masukkan data yang valid!";
+    } else {
+        $modal = (float)$modal;
+        $jual = (float)$jual;
+        $jumlah = (int)$jumlah;
+
+        $totalModal = $modal * $jumlah;
+        $totalJual = $jual * $jumlah;
+        $keuntungan = $totalJual - $totalModal;
+        $persen = ($keuntungan / $totalModal) * 100;
+
+        $hasil = true;
+    }
+}
+
+function rupiah($angka) {
+    return "Rp " . number_format($angka, 0, ",", ".");
+}
+?>
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Keuntungan</title>
+    <link rel="stylesheet" href="sty.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Kalkulator Keuntungan</h1>
+    <p class="subtitle">Hitung keuntungan atau kerugian usahamu</p>
+
+    <form method="POST">
+        <label>Harga Modal per Barang (Rp)</label>
+        <input
+            type="number"
+            name="modal"
+            min="0.01"
+            step="any"
+            placeholder="Contoh: 10000"
+            value="<?= htmlspecialchars((string)$modal) ?>"
+            required
+        >
+
+        <label>Harga Jual per Barang (Rp)</label>
+        <input
+            type="number"
+            name="jual"
+            min="0"
+            step="any"
+            placeholder="Contoh: 15000"
+            value="<?= htmlspecialchars((string)$jual) ?>"
+            required
+        >
+
+        <label>Jumlah Barang</label>
+        <input
+            type="number"
+            name="jumlah"
+            min="1"
+            step="1"
+            placeholder="Contoh: 10"
+            value="<?= htmlspecialchars((string)$jumlah) ?>"
+            required
+        >
+
+        <button type="submit">Hitung Keuntungan</button>
+    </form>
+
+    <?php if ($error !== ""): ?>
+        <div class="error">
+            <?= htmlspecialchars($error) ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($hasil): ?>
+        <div class="hasil">
+            <h2>Hasil Perhitungan</h2>
+
+            <div class="baris">
+                <span>Total Modal</span>
+                <strong><?= rupiah($totalModal) ?></strong>
+            </div>
+
+            <div class="baris">
+                <span>Total Pendapatan</span>
+                <strong><?= rupiah($totalJual) ?></strong>
+            </div>
+
+            <div class="baris utama">
+                <span>
+                    <?= $keuntungan > 0 ? "Keuntungan" :
+                        ($keuntungan < 0 ? "Kerugian" : "Hasil") ?>
+                </span>
+                <strong><?= rupiah(abs($keuntungan)) ?></strong>
+            </div>
+
+            <div class="baris">
+                <span>Persentase terhadap Modal</span>
+                <strong><?= number_format($persen, 2, ",", ".") ?>%</strong>
+            </div>
+
+            <p class="<?= $keuntungan > 0 ? 'sukses' :
+                ($keuntungan < 0 ? 'rugi' : 'impas') ?>">
+                <?php
+                if ($keuntungan > 0) {
+                    echo "Usahamu mendapatkan keuntungan!";
+                } elseif ($keuntungan < 0) {
+                    echo "Usahamu mengalami kerugian.";
+                } else {
+                    echo "Modal dan pendapatan seimbang.";
+                }
+                ?>
+            </p>
+        </div>
+    <?php endif; ?>
+
+    <footer>Dibuat menggunakan PHP dan CSS</footer>
+</div>
+
+</body>
+</html>
